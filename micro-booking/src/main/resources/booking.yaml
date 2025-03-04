@@ -1,0 +1,93 @@
+---
+openapi: 3.0.1
+info:
+  title: Micro service
+  description: Micro service to book a visit
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  version: 1.0.0
+servers:
+- url: http://localhost:8090
+tags:
+- name: visit
+  description: Visit which you can book
+paths:
+  /visit:
+    post:
+      tags:
+      - visit
+      summary: Booking of a visit
+      operationId: bookVisit
+      requestBody:
+        description: Details of visit which you are booking
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BookVisitRequest'
+        required: true
+      responses:
+        400:
+          description: Problem during processing of the booking
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExceptionResponse'
+
+components:
+  schemas:
+    Customer:
+      type: object
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+    Employee:
+      type: object
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string      
+    Visit:
+      type: object
+      properties:
+        dateStart:
+          type: string
+          format: date-time
+        dateStop:
+          type: string
+          format: date-time
+    BookingInfo:
+      type: object
+      properties:
+        id:
+          type: string
+        cost:
+          type: number
+    AvailiabilityRequest:
+      type: object
+      properties:
+        visit:
+          $ref: '#/components/schemas/Visit'
+        employee:
+          $ref: '#/components/schemas/Employee'
+    BookVisitRequest:
+      type: object
+      properties:
+        customer:
+          $ref: '#/components/schemas/Customer'
+        visit:
+          $ref: '#/components/schemas/Visit'
+        employee:
+          $ref: '#/components/schemas/Employee'
+    ExceptionResponse:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        message:
+          type: string
+

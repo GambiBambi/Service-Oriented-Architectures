@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rezerwacja wizyty u kosmetyczki</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f1faff;  /* Główne tło strony (bardzo jasny niebieski) */
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        h1 {
+            color: #333;  /* Kolor tytułów ciemnoszary */
+            text-align: center;
+        }
+
+        form {
+            width: 80%;
+            margin: 20px auto;
+            background-color: #e0f4ff;  /* Jasny niebieski dla formularza */
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        fieldset {
+            border: 1px solid #b3d7f5;  /* Bardzo jasny niebieski dla sekcji formularza */
+            padding: 15px;
+            margin-bottom: 30px;  /* Większa przerwa między sekcjami */
+            border-radius: 5px;
+            background-color: #f5faff;  /* Lekko jaśniejsze tło sekcji formularza */
+        }
+
+        legend {
+            font-weight: bold;
+            color: #333;  /* Kolor legend ciemnoszary */
+            margin-bottom: 10px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        input[type="text"], input[type="datetime-local"], input[type="radio"] {
+            width: 100%;
+            padding: 5px;
+            margin-bottom: 2px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+
+        input[type="radio"] {
+            width: auto;
+            margin-right: 10px;
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        li {
+            margin-bottom: 5px;  /* Mniejsze przerwy między kosmetyczkami */
+            display: flex;
+            align-items: center;
+        }
+
+        .employee-label {
+            margin-left: 10px;
+            flex: 1;
+        }
+
+        .employee-select {
+            margin-left: 10px;
+        }
+
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 15px 20px;
+            border: none;
+            border-radius: 5px;
+            width: 100%;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .flashes {
+            list-style-type: none;
+            padding: 0;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .flashes li {
+            background-color: #ffdddd;
+            color: #d8000c;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+
+        .flashes li.success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .flashes li.error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        /* Sekcja z kosmetyczkami */
+        .employee-section {
+            border: 1px solid #b3d7f5;  /* Obramowanie sekcji kosmetyczek */
+            border-radius: 5px;
+            background-color: #f5faff;  /* Jaśniejsze tło, dopasowane do sekcji formularza */
+            padding: 15px;
+            margin-bottom: 30px;  /* Większa przerwa poniżej */
+        }
+
+        .employee-section h2 {
+            margin: 0;
+            padding: 0;
+            font-size: 20px;
+            color: #333;  /* Kolor tytułu na ciemnoszary */
+            border-bottom: 1px solid #b3d7f5;  /* Dodanie linii pod tytułem */
+            padding-bottom: 5px;
+            margin-bottom: 15px; /* Większy odstęp między kreską a imionami i nazwiskami */
+        }
+
+        .employee-section ul {
+            margin: 0;
+        }
+
+        .employee-section li {
+            padding: 5px 0;  /* Zmniejszenie przestrzeni między kosmetyczkami */
+            border-bottom: none;  /* Usunięcie kresek między kosmetyczkami */
+        }
+
+        .employee-section li:last-child {
+            border-bottom: none;
+        }
+
+        .employee-info {
+            flex-grow: 1;
+            margin-right: 10px;
+            display: flex;
+        }
+
+        .price {
+            color: #555;
+            font-weight: normal;
+            white-space: nowrap;
+            display: flex;
+        }
+
+        .availability {
+            color: #555;
+            font-weight: normal;
+            white-space: nowrap;
+            display: flex;
+        }
+
+    </style>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const now = new Date();
+            const formattedDateTime = now.toISOString().slice(0, 16);
+            document.getElementById("visit_start").min = formattedDateTime;
+            document.getElementById("visit_stop").min = formattedDateTime;
+        });
+    </script>
+</head>
+<body>
+    <h1>Rezerwacja wizyty u kosmetyczki</h1>
+
+    <!-- Flash messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <ul class="flashes">
+                {% for category, message in messages %}
+                    <li class="{{ category }}">{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    {% endwith %}
+
+    <form action="/visit/booking" method="POST">
+        <!-- Sekcja z kosmetyczkami -->
+        <div class="employee-section">
+            <h2>Wybierz kosmetyczkę</h2>
+            <ul>
+                {% for index, firstname, lastname, specialty, cost in employees %}
+                    <li>
+                        <input type="radio" id="employee_{{ index }}" name="employee_index" value="{{ index }}" required class="employee-select">
+                        <label for="employee_{{ index }}" class="employee-label">
+                            <span class="employee-info">{{ firstname }} {{ lastname }} ({{ specialty }})</span>
+                            <span class="price">Domyślna cena: {{ cost }} zł</span>
+                            <span class="availability">
+                                {% if firstname == "Julia" and lastname == "Podsadna" %}
+                                    Dostępność: Poniedziałek, Wtorek, Sobota
+                                {% elif firstname == "Julia" and lastname == "Kowalska" %}
+                                    Dostępność: Środa, Czwartek, Piątek, Niedziela
+                                {% else %}
+                                    Dostępność: Poniedziałek - Piątek
+                                {% endif %}
+                            </span>
+                        </label>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <!-- Visit Dates -->
+        <fieldset>
+            <legend>Data wizyty</legend>
+            <label for="visit_start">Początek wizyty:</label>
+            <input type="datetime-local" id="visit_start" name="visit_start" required><br><br>
+
+            <label for="visit_stop">Koniec wizyty:</label>
+            <input type="datetime-local" id="visit_stop" name="visit_stop" required><br><br>
+        </fieldset>
+
+        <!-- Client Information -->
+        <fieldset>
+            <legend>Informacje o kliencie</legend>
+            <label for="customer_firstname">Imię:</label>
+            <input type="text" id="customer_firstname" name="customer_firstname" required><br><br>
+
+            <label for="customer_lastname">Nazwisko:</label>
+            <input type="text" id="customer_lastname" name="customer_lastname" required><br><br>
+        </fieldset>
+
+        <!-- Card Information -->
+        <fieldset>
+            <legend>Karta członkowska</legend>
+            <label for="card_number">Numer karty:</label>
+            <input type="text" id="card_number" name="card_number" required><br><br>
+
+            <label for="card_firstname">Imię:</label>
+            <input type="text" id="card_firstname" name="card_firstname" required><br><br>
+
+            <label for="card_lastname">Nazwisko:</label>
+            <input type="text" id="card_lastname" name="card_lastname" required><br><br>
+        </fieldset>
+
+        <!-- Submit Button -->
+        <button type="submit">Zarezerwuj</button>
+    </form>
+</body>
+</html>

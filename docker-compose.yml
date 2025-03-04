@@ -1,0 +1,57 @@
+services:
+  zookeeper:
+    image: wurstmeister/zookeeper
+    ports:
+      - "2181:2181"
+  kafka:
+    image: wurstmeister/kafka 
+    ports:
+      - "9092:9092"
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_ADVERTISED_HOST_NAME: kafka
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+  gateway:
+    image: microbooking
+    ports:
+      - "8090:8090"
+    depends_on:
+      - kafka
+    environment:
+      MICROBOOKING_KAFKA_SERVER: kafka:9092
+      MICROBOOKING_SERVICE_TYPE: gateway
+  availability:
+    image: microbooking
+    depends_on:
+      - kafka
+    environment:
+      MICROBOOKING_KAFKA_SERVER: kafka:9092
+      MICROBOOKING_SERVICE_TYPE: availability
+  visit:
+    image: microbooking
+    depends_on:
+      - kafka
+    environment:
+      MICROBOOKING_KAFKA_SERVER: kafka:9092
+      MICROBOOKING_SERVICE_TYPE: visit
+  discount:
+    image: microbooking
+    depends_on:
+      - kafka
+    environment:
+      MICROBOOKING_KAFKA_SERVER: kafka:9092
+      MICROBOOKING_SERVICE_TYPE: discount
+  web:
+    build: ./flask-webapp
+    ports:
+      - "5001:5000"
+    depends_on:
+      - gateway
+    environment:
+      - GATEWAY_URL=http://gateway:8090
+    volumes:
+      - ./flask-webapp:/app
+
